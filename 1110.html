@@ -4,13 +4,41 @@
         <script>
             /*js多行註解*/
             //js單行註解
-              function hello(){
-                    console.log("abcdef");
-                    alert("你好!");
+            /* 內建功能
+            alert("訊息方塊");
+            prompt("問問題 確定回傳字串 取消回傳null");
+            confirm("確認用 確定回傳true 取消回傳false");
+
+            parse("將字串轉換成整數 不是數字則回傳NaN");
+            */
+            function sum() {
+                var n1=parseInt(document.getElementById("n1").value);
+                var n2=parseInt(document.getElementById("n2").value);
+                var n3=document.getElementById("n3");
+                var ans=document.getElementById("ans");
+                
+                if(isNaN(n1)) {
+                    n1=0;
+                }
+                n2=isNaN(n2)? 0 : n2;
+
+                n3.value=n1+n2;
+                ans.innerHTML=`答案是${n1+n2}`;
               }
+
         </script>
     <body>
-        <button onclick="hello()">按我</button>
+        <input type="text" value="文字內容" placeholder="提示語">輸入文字<br>
+        <input type="password" placeholder="輸入密碼" value="1234"><br>
+        <input type="number" min=0 max=20 step=2><br>
+        <input type="date" value="2025-11-10"> <!--value格式:YYYY-MM-DD--><br>
+        <input id="dt1" type="datetime-local" value="2024-12-25T10:36"> <!--value格式:YYYY-MM-DDThh:mm--><br>
+        <input type="color" value="#0000FF">
+
+        <hr>
+        <input type="number" id="n1"> + <input type="number" id="n2">
+        <button onclick="sum();"> = </button> <input type="number" id="n3">
+        <div id="ans"></div>
     </body>
     </head>
 </html>
