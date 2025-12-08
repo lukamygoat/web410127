@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <title>1208</title>
+        <style>
+            #map{
+                width: 800px;
+                height: 600px;
+                background:url("pic/grass.jpg") 
+                background-size: 30%;
+                /*background-repeat:repeat;*/
+                animation: bg_move 1s linear infinite;
+            }
+            @keyframes bg_move {
+             0% { background-position: 0% 0%; }           
+             30% { background-position: 5% 0%; }
+             100% { background-position: 0% 0%; }     
+            }
+            #role{
+               width: 48px;
+               height: 72px;
+                background-image: url("pic/sprite.png");
+                border: 1px solid red ;
+                background-position: -144px -280px;
+                animation: walking 0.7s steps(3) infinite;
+                position: absolute;
+                right: 376px; 
+                left:  364px;
+                /*border: 1px solid red;*/
+            }
+            @keyframes walking {
+                 0% { background-position-x: -144px; }           
+                       100% { background-position-x: -288px; }  
+            }
+        </style>
+        <script>
+            function mykeydown(){
+               event.preventDefault();
+               var role=document.getElementById("role");
+                if(event.key=="ArrowDown") {
+                    role.style.backgroundPositionY="-288px";
+                   if (role.posY < 728) role.posY++;
+                }
+                else  if(event.key=="ArrowLeft") {
+                    role.style.backgroundPositionY="-360px";
+                    if(role.posX > 0) role.posX--;
+                }
+                else  if(event.key=="ArrowRight") {
+                    role.style.backgroundPositionY="-432px";
+                    if(role.posX < 752) role.posX++;
+                }
+                else  if(event.key=="ArrowUP") {
+                    role.style.backgroundPositionY="-504px";
+                    if(role.posY > 0) role.posY--;
+                }
+                role.style.left=role.posX+"px";
+                role.style.top=posY+"px"
+            }
+            function page_init(){
+                var role=document.getElementById("role");
+                role.posX=376;
+                role.posY=364;
+            }
+        </script>
+    </head>
+    <body>
+        <div id="map">
+            <div id="role"></div>
+        </div>
+    </body>
+</html>
