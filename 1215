@@ -1,0 +1,97 @@
+<html>
+    <heda>
+        <title>1215-宇宙射擊遊戲</title>
+        <style>
+            #spaces{
+                width: 800px;
+                height: 800px;
+                background:url("pic/bg_stars.jpg");
+                animation: bg_move 1s linear infinite ;
+            }
+            @keyframes bg_move {
+                0%{background-position: 0px;}
+                100%{background-position: 216px;}
+            }
+            #ship {
+                width: 40px;
+                height: 60px;
+                background:url("pic/ship.png") ;
+                background-size: 40px 60px;
+                position: absolute;
+            }
+            .ufo{
+                width: 60px;
+                height: 40px;
+                background-size: 60px 40px;
+                position: absolute;
+            }
+            .bullet{
+                width: 4px;
+                height: 6px;
+                background-color: red;
+                position: absolute;
+            }
+        </style>
+        <script>
+            function ship_move(ufo){
+              if(ufo.posY + ufo.h > spaces.h){
+                clearInterval(ufo.move);
+                ufo.remove();
+                return;
+              }
+              ufo.posY++;
+              ufo.posX += getRand(-3,3);
+              if(ufo)
+
+             
+              
+           function ufo_create(){
+            var u=document.createElement("img")
+            u.src="pic/ufo.png";
+            u.className="ufo";
+            u.w=60;
+            u.h=40;
+            u.posX=getRand(,spaces.w - u.w);
+            u.posY=getRand(0,10);
+            document.getElementById("spaces").appendChild(u);
+            u.style.left=u.posX+"px";
+            u.style.top=u.posY+"px";
+            u.move=setInterval(ufo_move)
+           }
+           function shoot(){
+            if(bt.posY<0)
+           }
+
+
+            function game_init(){
+                dir={"ArrowLeft":0,"ArrowRight":0,"ArrowUp":0,"ArrowDown":0 }
+                ship=document.getElementById("ship")
+                ship.w=40;
+                ship.h=60;
+                ship.posX=(spaces.w-ship.w)/2;
+                ship.posY=spaces.h-ship.h;
+                ship.style.left=ship.posX+"px";
+                ship.style.top=ship.posY+"px";
+                ship.move=setInterval(ship_move,5);
+                game_t1=setInterval
+            }
+            function mykeydown(){
+                event.preventDefault();
+                if(event.key == " "){
+
+                }
+                
+            }
+            function mykeyup(){
+                event.preventDefault();
+            }
+
+        </script>
+    </heda>
+    <body onload="game_init()" onkeydown="mykeydown()" onkeyup="mykeyup()">
+        <div id="spaces">
+            <!--div img src="pic/ship.png" width="40px"-->
+            <div id="ship"></div>
+        </div>
+    </body>
+</html>
