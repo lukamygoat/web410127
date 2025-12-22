@@ -42,9 +42,26 @@
               ufo.posY++;
               ufo.posX += getRand(-3,3);
               if(ufo)
+              function bullet_move(bt) {
+            if(bt.posY < 0){
+                clearInterval(bt.move);
+                bt.remove();
+                return;
+            }
+             bt.posY--;
+             bt.style.top=bt.posY+"px";
 
-             
-              
+             var hit_ufo = Array.from(document.getElementsByClassName("ufo")).filter((u)=>{
+                return (u.posX < bt.posX) && (u.posX + u.w > bt.posX + bt.w) &&
+                    (u.posY + u.h >= bt.posY);
+             });
+             if(hit_ufo.length >0) {
+               clearInterval(bt.move);
+                bt.remove();
+                
+                    clearInterval(u.move)
+                })
+             }              
            function ufo_create(){
             var u=document.createElement("img")
             u.src="pic/ufo.png";
@@ -74,24 +91,48 @@
                 ship.style.top=ship.posY+"px";
                 ship.move=setInterval(ship_move,5);
                 game_t1=setInterval
+                game_score=0;
+                game_time=0;
+                game_timer=setInterval(function(){
+                    game_time++;
+                    document.getElementById("game_timer").innerHTML=game_time;
+                },1000);
+                ufo_creater=setInterval(ufo_create,1000);
+                game_starting=ture;
+            }
+            function game_over(){
+                gamestarter=false;
+                clearInterval(ufo_creater);
+                clearInterval(gamer_timer);
+                document.getElementById("spaces").style.animationPlayState="paused";
+                Array.from(document.getElementsByClassName)
             }
             function mykeydown(){
                 event.preventDefault();
                 if(event.key == " "){
-
+                    shoot();
+                }else if(Object.keys(dir).includes(event.key)){
+                    dir [event.key]=1;
+                }
                 }
                 
             }
             function mykeyup(){
                 event.preventDefault();
             }
-
+            #status {
+                background-color:
+            }
         </script>
     </heda>
     <body onload="game_init()" onkeydown="mykeydown()" onkeyup="mykeyup()">
+                <div id="status" style="width: 800px;">
+                    <div>得分:<span id="score">0</span>分</div>
+                    <div>時間:<span id="game_time">0</span>秒</div>
         <div id="spaces">
             <!--div img src="pic/ship.png" width="40px"-->
             <div id="ship"></div>
-        </div>
+        </div>    
+        <button id=""
     </body>
 </html>
