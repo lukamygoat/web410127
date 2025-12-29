@@ -1,0 +1,166 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Trash2 } from 'lucide-react';
+
+const SimpleReactionLeaderboard = () => {
+  // 狀態: 'idle' (閒置), 'waiting' (等待變色), 'ready' (變綠了!), 'early' (偷跑)
+  const [status, setStatus] = useState('idle');
+  const [message, setMessage] = useState('按下空白鍵開始');
+  const [result, setResult] = useState(null);
+  const [highScores, setHighScores] = useState([]);
+  
+  // 紀錄時間用的 Ref
+  const startTimeRef = useRef(0);
+  const timerRef = useRef(null);
+
+  // 初始化：讀取排行榜
+  useEffect(() => {
+    const saved = localStorage.getItem('simple-reaction-scores');
+    if (saved) {
+      setHighScores(JSON.parse(saved));
+    }
+  }, []);
+
+  // 儲存分數邏輯
+  const saveScore = (time) => {
+    const newScores = [...highScores, time];
+    newScores.sort((a, b) => a - b);
+    const top5 = newScores.slice(0, 5);
+    setHighScores(top5);
+    localStorage.setItem('simple-reaction-scores', JSON.stringify(top5));
+  };
+
+  const clearScores = (e) => {
+    e?.stopPropagation(); // 防止冒泡
+    setHighScores([]);
+    localStorage.removeItem('simple-reaction-scores');
+  };
+
+  // 核心動作邏輯 (處理 開始/偷跑/成功)
+  // 使用 useCallback 確保依賴變數更新時函數能被正確引用
+  const handleAction = useCallback(() => {
+    if (status === 'idle' || status === 'early' || status === 'result') {
+      // 1. 開始遊戲
+      setStatus('waiting');
+      setMessage('看到綠色按下空白鍵...');
+      setResult(null);
+      
+      const randomDelay = Math.floor(Math.random() * 3000) + 2000;
+      
+      timerRef.current = setTimeout(() => {
+        setStatus('ready');
+        setMessage('按空白鍵！！！');
+        startTimeRef.current = Date.now(); 
+      }, randomDelay);
+
+    } else if (status === 'waiting') {
+      // 2. 偷跑
+      clearTimeout(timerRef.current);
+      setStatus('early');
+      setMessage('太早了！按空白鍵重來');
+
+    } else if (status === 'ready') {
+      // 3. 成功
+      const endTime = Date.now();
+      const reactionTime = endTime - startTimeRef.current;
+      
+      setStatus('result');
+      setResult(reactionTime);
+      setMessage(`${reactionTime} ms`);
+      
+      saveScore(reactionTime);
+    }
+  }, [status, highScores]); // 依賴 status 更新
+
+  // 監聽鍵盤事件
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // 檢查是否是空白鍵 (Space)
+      if (e.code === 'Space') {
+        e.preventDefault(); // 防止網頁捲動
+        handleAction();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // 清除監聽器
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleAction]); // 當 handleAction 改變時 (即 status 改變時) 重新綁定
+
+  const getBackgroundColor = () => {
+    switch (status) {
+      case 'waiting': return 'bg-red-500';
+      case 'ready':   return 'bg-green-500';
+      case 'early':   return 'bg-orange-500';
+      default:        return 'bg-blue-600';
+    }
+  };
+
+  return (
+    <div 
+      // 保留 onClick 讓點擊也能觸發 (對應手機或直覺操作)
+      onClick={handleAction}
+      className={`relative w-full h-screen flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 select-none text-white ${getBackgroundColor()} outline-none`}
+      // 讓 div 可以被 focus 以接收鍵盤事件 (雖然我們用了 window 監聽，但這樣符合語意)
+      tabIndex="0" 
+    >
+      {/* 中央訊息 */}
+      <h1 className="text-6xl font-black mb-2 text-center tracking-tighter drop-shadow-md">
+        {message}
+      </h1>
+
+      {/* 結果提示 */}
+      {status === 'result' && (
+        <p className="text-xl opacity-90 font-medium animate-pulse">
+          再次按下空白鍵以重試
+        </p>
+      )}
+
+      {/* 操作提示 (右下角) */}
+      <div className="absolute bottom-4 right-4 text-xs opacity-40 font-mono">
+        [Space] to Action
+      </div>
+
+      {/* 排行榜區塊 */}
+      {(status === 'idle' || status === 'result' || status === 'early') && (
+        <div 
+          // 這裡阻止冒泡，避免點擊排行榜時觸發遊戲開始
+          onClick={(e) => e.stopPropagation()}
+          className="absolute bottom-10 bg-black/20 backdrop-blur-sm p-6 rounded-xl border border-white/10 w-64"
+        >
+          <div className="flex justify-between items-center mb-4 border-b border-white/20 pb-2">
+            <span className="font-bold text-sm tracking-widest uppercase opacity-70">Top 5 Records</span>
+            {highScores.length > 0 && (
+              <button 
+                onClick={clearScores}
+                className="p-1 hover:bg-white/20 rounded transition-colors text-white/50 hover:text-white"
+                title="清空紀錄"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+          
+          {highScores.length === 0 ? (
+            <div className="text-center text-sm opacity-50 py-2">尚無紀錄</div>
+          ) : (
+            <div className="space-y-2">
+              {highScores.map((score, index) => (
+                <div key={index} className="flex justify-between items-center text-lg font-mono">
+                  <span className="opacity-50">#{index + 1}</span>
+                  <span className={`${index === 0 ? 'text-yellow-300 font-bold' : 'text-white'}`}>
+                    {score} <span className="text-xs opacity-60">ms</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SimpleReactionLeaderboard;
