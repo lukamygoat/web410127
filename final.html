@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>70秒練習定位</title>
+    <title>限時點氣球 (70秒挑戰)</title>
     <style>
         body {
             margin: 0;
@@ -16,15 +16,16 @@
         canvas {
             display: block;
         }
+        /* UI 介面調整 */
         #ui-layer {
             position: absolute;
             top: 20px;
             left: 20px;
-            right: 20px;
+            right: 20px; /* 讓它橫跨整個上方 */
             display: flex;
-            justify-content: space-between; 
+            justify-content: space-between; /* 分數靠左，時間靠右 */
             color: white;
-            font-size: 32px;
+            font-size: 32px; /* 字體變大一點 */
             font-weight: bold;
             pointer-events: none;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
@@ -55,6 +56,7 @@
             transform: scale(1.05);
             background-color: #74b9ff;
         }
+        /* 時間快到時變成紅色 */
         .urgent {
             color: #ff7675;
             animation: blink 0.5s infinite;
@@ -74,5 +76,130 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="start-screen">
-        <h1 id="screen-title">70秒練習定位</h1>
-        <p id="screen-desc">你有 70 秒的時間
+        <h1 id="screen-title">🎯 限時挑戰</h1>
+        <p id="screen-desc">你有 70 秒的時間，盡可能點破更多氣球！</p>
+        <button onclick="startGame()">開始遊戲</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const timeEl = document.getElementById('time');
+        const timerDisplay = document.getElementById('timer-display');
+        const startScreen = document.getElementById('start-screen');
+        const screenTitle = document.getElementById('screen-title');
+        const screenDesc = document.getElementById('screen-desc');
+        let width, height;
+        let balloons = [];
+        let score = 0;
+        let gameActive = false;
+        let spawnRate = 40;
+        let frameCount = 0;
+        let timeLeft = 70;
+        let timerInterval = null;
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        class Balloon {
+            constructor() {
+                this.maxRadius = Math.random() * 20 + 30;
+                this.radius = 0; 
+                this.x = Math.random() * (width - 100) + 50; 
+                this.y = Math.random() * (height - 100) + 50;
+                this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                this.lifeTime = 100; 
+                this.age = 0;
+            }
+            update() {
+                this.age++;
+                if (this.age < 10) {
+                    this.radius = this.maxRadius * (this.age / 10);
+                } else {
+                    this.radius = this.maxRadius;
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fill();
+            }
+        }
+        canvas.addEventListener('mousedown', (e) => {
+            if (!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            for (let i = balloons.length - 1; i >= 0; i--) {
+                let b = balloons[i];
+                let dist = Math.hypot(mouseX - b.x, mouseY - b.y);
+                if (dist < b.radius) {
+                    balloons.splice(i, 1);
+                    score++;
+                    scoreEl.innerText = score;
+                    if (score % 5 === 0 && spawnRate > 10) {
+                        spawnRate -= 2; 
+                    }
+                    break; 
+                }
+            }
+        });
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameActive = true;
+            score = 0;
+            scoreEl.innerText = '0';
+            spawnRate = 40;
+            balloons = [];
+            timeLeft = 70;
+            timeEl.innerText = timeLeft;
+            timerDisplay.classList.remove('urgent');
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            animate();
+        }
+        function updateTimer() {
+            timeLeft--;
+            timeEl.innerText = timeLeft;
+            if (timeLeft <= 10) {
+                timerDisplay.classList.add('urgent');
+            }
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            screenTitle.innerText = "時間到！";
+            screenDesc.innerHTML = `你的最終分數是：<strong style="font-size:30px; color:#e74c3c">${score}</strong>`;
+            document.querySelector('#start-screen button').innerText = "再玩一次";
+            startScreen.style.display = 'block';
+        }
+        function animate() {
+            if (!gameActive) return;
+            ctx.clearRect(0, 0, width, height);
+            frameCount++;
+            if (frameCount % spawnRate === 0) {
+                balloons.push(new Balloon());
+            }
+            for (let i = 0; i < balloons.length; i++) {
+                balloons[i].update();
+                balloons[i].draw();
+                if (balloons[i].age >= balloons[i].lifeTime) {
+                    balloons.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+    </script>
+</body>
+</html>
