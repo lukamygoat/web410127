@@ -1,1 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>限時點氣球 (70秒挑戰)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #2c3e50;
+            font-family: 'Arial', sans-serif;
+            user-select: none;
+            cursor: crosshair;
+        }
+        canvas {
+            display: block;
+        }
+        /* UI 介面調整 */
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px; /* 讓它橫跨整個上方 */
+            display: flex;
+            justify-content: space-between; /* 分數靠左，時間靠右 */
+            color: white;
+            font-size: 32px; /* 字體變大一點 */
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        #start-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        button {
+            background-color: #0984e3;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            transform: scale(1.05);
+            background-color: #74b9ff;
+        }
+        /* 時間快到時變成紅色 */
+        .urgent {
+            color: #ff7675;
+            animation: blink 0.5s infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
 
+    <div id="ui-layer">
+        <div>得分: <span id="score">0</span></div>
+        <div id="timer-display">時間: <span id="time">70</span></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="start-screen">
+        <h1 id="screen-title">🎯 限時挑戰</h1>
+        <p id="screen-desc">你有 70 秒的時間
