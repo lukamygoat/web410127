@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>限時點氣球 (70秒挑戰)</title>
+    <title>70秒練習定位</title>
     <style>
         body {
             margin: 0;
@@ -16,16 +16,15 @@
         canvas {
             display: block;
         }
-        /* UI 介面調整 */
         #ui-layer {
             position: absolute;
             top: 20px;
             left: 20px;
-            right: 20px; /* 讓它橫跨整個上方 */
+            right: 20px;
             display: flex;
-            justify-content: space-between; /* 分數靠左，時間靠右 */
+            justify-content: space-between; 
             color: white;
-            font-size: 32px; /* 字體變大一點 */
+            font-size: 32px;
             font-weight: bold;
             pointer-events: none;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
@@ -56,7 +55,6 @@
             transform: scale(1.05);
             background-color: #74b9ff;
         }
-        /* 時間快到時變成紅色 */
         .urgent {
             color: #ff7675;
             animation: blink 0.5s infinite;
@@ -76,5 +74,5 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="start-screen">
-        <h1 id="screen-title">🎯 限時挑戰</h1>
+        <h1 id="screen-title">70秒練習定位</h1>
         <p id="screen-desc">你有 70 秒的時間
