@@ -1,205 +1,252 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>限時點氣球 (70秒挑戰)</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #2c3e50;
-            font-family: 'Arial', sans-serif;
-            user-select: none;
-            cursor: crosshair;
-        }
-        canvas {
-            display: block;
-        }
-        /* UI 介面調整 */
-        #ui-layer {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px; /* 讓它橫跨整個上方 */
-            display: flex;
-            justify-content: space-between; /* 分數靠左，時間靠右 */
-            color: white;
-            font-size: 32px; /* 字體變大一點 */
-            font-weight: bold;
-            pointer-events: none;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        #start-screen {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 50px;
-            border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            z-index: 10;
-        }
-        button {
-            background-color: #0984e3;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        button:hover {
-            transform: scale(1.05);
-            background-color: #74b9ff;
-        }
-        /* 時間快到時變成紅色 */
-        .urgent {
-            color: #ff7675;
-            animation: blink 0.5s infinite;
-        }
-        @keyframes blink {
-            50% { opacity: 0.5; }
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>限時點氣球 (70秒挑戰)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #2c3e50;
+            font-family: 'Arial', sans-serif;
+            user-select: none;
+            cursor: crosshair;
+        }
+        canvas {
+            display: block;
+        }
+        /* UI 介面調整 */
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px; /* 讓它橫跨整個上方 */
+            display: flex;
+            justify-content: space-between; /* 分數靠左，時間靠右 */
+            color: white;
+            font-size: 32px; /* 字體變大一點 */
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        #start-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        button {
+            background-color: #0984e3;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            transform: scale(1.05);
+            background-color: #74b9ff;
+        }
+        /* 時間快到時變成紅色 */
+        .urgent {
+            color: #ff7675;
+            animation: blink 0.5s infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="ui-layer">
-        <div>得分: <span id="score">0</span></div>
-        <div id="timer-display">時間: <span id="time">70</span></div>
-    </div>
+    <div id="ui-layer">
+        <div>得分: <span id="score">0</span></div>
+        <div id="timer-display">時間: <span id="time">70</span></div>
+    </div>
 
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
-    <div id="start-screen">
-        <h1 id="screen-title">🎯 限時挑戰</h1>
-        <p id="screen-desc">你有 70 秒的時間，盡可能點破更多氣球！</p>
-        <button onclick="startGame()">開始遊戲</button>
-    </div>
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreEl = document.getElementById('score');
-        const timeEl = document.getElementById('time');
-        const timerDisplay = document.getElementById('timer-display');
-        const startScreen = document.getElementById('start-screen');
-        const screenTitle = document.getElementById('screen-title');
-        const screenDesc = document.getElementById('screen-desc');
-        let width, height;
-        let balloons = [];
-        let score = 0;
-        let gameActive = false;
-        let spawnRate = 40;
-        let frameCount = 0;
-        let timeLeft = 70;
-        let timerInterval = null;
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-        class Balloon {
-            constructor() {
-                this.maxRadius = Math.random() * 20 + 30;
-                this.radius = 0; 
-                this.x = Math.random() * (width - 100) + 50; 
-                this.y = Math.random() * (height - 100) + 50;
-                this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
-                this.lifeTime = 100; 
-                this.age = 0;
-            }
-            update() {
-                this.age++;
-                if (this.age < 10) {
-                    this.radius = this.maxRadius * (this.age / 10);
-                } else {
-                    this.radius = this.maxRadius;
-                }
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.2, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.fill();
-            }
-        }
-        canvas.addEventListener('mousedown', (e) => {
-            if (!gameActive) return;
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            for (let i = balloons.length - 1; i >= 0; i--) {
-                let b = balloons[i];
-                let dist = Math.hypot(mouseX - b.x, mouseY - b.y);
-                if (dist < b.radius) {
-                    balloons.splice(i, 1);
-                    score++;
-                    scoreEl.innerText = score;
-                    if (score % 5 === 0 && spawnRate > 10) {
-                        spawnRate -= 2; 
-                    }
-                    break; 
-                }
-            }
-        });
-        function startGame() {
-            startScreen.style.display = 'none';
-            gameActive = true;
-            score = 0;
-            scoreEl.innerText = '0';
-            spawnRate = 40;
-            balloons = [];
-            timeLeft = 70;
-            timeEl.innerText = timeLeft;
-            timerDisplay.classList.remove('urgent');
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(updateTimer, 1000);
-            animate();
-        }
-        function updateTimer() {
-            timeLeft--;
-            timeEl.innerText = timeLeft;
-            if (timeLeft <= 10) {
-                timerDisplay.classList.add('urgent');
-            }
-            if (timeLeft <= 0) {
-                endGame();
-            }
-        }
-        function endGame() {
-            gameActive = false;
-            clearInterval(timerInterval);
-            screenTitle.innerText = "時間到！";
-            screenDesc.innerHTML = `你的最終分數是：<strong style="font-size:30px; color:#e74c3c">${score}</strong>`;
-            document.querySelector('#start-screen button').innerText = "再玩一次";
-            startScreen.style.display = 'block';
-        }
-        function animate() {
-            if (!gameActive) return;
-            ctx.clearRect(0, 0, width, height);
-            frameCount++;
-            if (frameCount % spawnRate === 0) {
-                balloons.push(new Balloon());
-            }
-            for (let i = 0; i < balloons.length; i++) {
-                balloons[i].update();
-                balloons[i].draw();
-                if (balloons[i].age >= balloons[i].lifeTime) {
-                    balloons.splice(i, 1);
-                    i--;
-                }
-            }
-            requestAnimationFrame(animate);
-        }
-    </script>
+    <div id="start-screen">
+        <h1 id="screen-title">🎯 限時挑戰</h1>
+        <p id="screen-desc">你有 70 秒的時間，盡可能點破更多氣球！</p>
+        <button onclick="startGame()">開始遊戲</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const timeEl = document.getElementById('time');
+        const timerDisplay = document.getElementById('timer-display');
+        const startScreen = document.getElementById('start-screen');
+        const screenTitle = document.getElementById('screen-title');
+        const screenDesc = document.getElementById('screen-desc');
+
+        let width, height;
+        let balloons = [];
+        let score = 0;
+        let gameActive = false;
+        let spawnRate = 40;
+        let frameCount = 0;
+        
+        // 計時器相關變數
+        let timeLeft = 70;
+        let timerInterval = null;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Balloon {
+            constructor() {
+                this.maxRadius = Math.random() * 20 + 30;
+                this.radius = 0; // 出生動畫效果：從 0 變大
+                
+                this.x = Math.random() * (width - 100) + 50; 
+                this.y = Math.random() * (height - 100) + 50;
+                
+                this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                
+                this.lifeTime = 100; // 氣球存在時間 (約1.6秒)
+                this.age = 0;
+            }
+
+            update() {
+                this.age++;
+
+                // 出生動畫：前 10 幀快速變大，之後維持原樣
+                if (this.age < 10) {
+                    this.radius = this.maxRadius * (this.age / 10);
+                } else {
+                    this.radius = this.maxRadius;
+                }
+                
+                // 這裡移除了原本的「縮小」邏輯
+                // 氣球會一直保持最大直到被移除
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+
+                // 光澤
+                ctx.beginPath();
+                ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fill();
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            for (let i = balloons.length - 1; i >= 0; i--) {
+                let b = balloons[i];
+                let dist = Math.hypot(mouseX - b.x, mouseY - b.y);
+                
+                // 點擊判定
+                if (dist < b.radius) {
+                    balloons.splice(i, 1);
+                    score++;
+                    scoreEl.innerText = score;
+                    
+                    // 難度增加：生成速度變快
+                    if (score % 5 === 0 && spawnRate > 10) {
+                        spawnRate -= 2; 
+                    }
+                    break; 
+                }
+            }
+        });
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameActive = true;
+            
+            // 重置遊戲數據
+            score = 0;
+            scoreEl.innerText = '0';
+            spawnRate = 40;
+            balloons = [];
+            
+            // 重置計時器
+            timeLeft = 70;
+            timeEl.innerText = timeLeft;
+            timerDisplay.classList.remove('urgent');
+            
+            // 啟動計時器
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+
+            animate();
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            timeEl.innerText = timeLeft;
+
+            // 最後 10 秒變紅閃爍
+            if (timeLeft <= 10) {
+                timerDisplay.classList.add('urgent');
+            }
+
+            // 時間到
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            // 顯示結算畫面
+            screenTitle.innerText = "時間到！";
+            screenDesc.innerHTML = `你的最終分數是：<strong style="font-size:30px; color:#e74c3c">${score}</strong>`;
+            document.querySelector('#start-screen button').innerText = "再玩一次";
+            startScreen.style.display = 'block';
+        }
+
+        function animate() {
+            if (!gameActive) return;
+
+            ctx.clearRect(0, 0, width, height);
+            
+            frameCount++;
+            if (frameCount % spawnRate === 0) {
+                balloons.push(new Balloon());
+            }
+
+            for (let i = 0; i < balloons.length; i++) {
+                balloons[i].update();
+                balloons[i].draw();
+
+                // 生命週期結束：直接移除 (無縮小動畫)
+                if (balloons[i].age >= balloons[i].lifeTime) {
+                    balloons.splice(i, 1);
+                    i--;
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+    </script>
 </body>
 </html>
